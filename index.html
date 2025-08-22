@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRMT Blue Line - Cardless Payment</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #1e3c72;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, input[type="email"], input[type="tel"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .route-selection {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: end;
+            margin: 20px 0;
+        }
+
+        .swap-btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .swap-btn:hover {
+            background: #1e3c72;
+            transform: rotate(180deg);
+        }
+
+        .fare-display {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .fare-amount {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #2a5298, #1e3c72);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(42, 82, 152, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .payment-method {
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method:hover, .payment-method.selected {
+            border-color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+
+        .qr-container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        .qr-code {
+            margin: 20px 0;
+        }
+
+        .ticket-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 2px solid #2a5298;
+            color: #2a5298;
+            margin-right: 10px;
+        }
+
+        .back-btn:hover {
+            background: #2a5298;
+            color: white;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section.active {
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .route-selection {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .swap-btn {
+                order: 3;
+                justify-self: center;
+            }
+            
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">LRMT</div>
+            <h1>Lagos Blue Line</h1>
+            <p class="subtitle">Cardless Payment System</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Journey Planning Section -->
+            <div class="section active" id="journey-section">
+                <h2>Plan Your Journey</h2>
+                
+                <div class="route-selection">
+                    <div class="form-group">
+                        <label for="from-station">From</label>
+                        <select id="from-station">
+                            <option value="">Select departure station</option>
+                            <option value="Marina">Marina</option>
+                            <option value="Lagos Island">Lagos Island</option>
+                            <option value="Tafawa Balewa Square">Tafawa Balewa Square</option>
+                            <option value="National Theatre">National Theatre</option>
+                            <option value="Iganmu">Iganmu</option>
+                            <option value="Orile Iganmu">Orile Iganmu</option>
+                            <option value="Ebute Metta">Ebute Metta</option>
+                            <option value="Mile 2">Mile 2</option>
+                        </select>
+                    </div>
+                    
+                    <button class="swap-btn" onclick="swapStations()" title="Swap stations">⇄</button>
+                    
+                    <div class="form-group">
+                        <label for="to-station">To</label>
+                        <select id="to-station">
+                            <option value="">Select destination station</option>
+                            <option value="Marina">Marina</option>
+                            <option value="Lagos Island">Lagos Island</option>
+                            <option value="Tafawa Balewa Square">Tafawa Balewa Square</option>
+                            <option value="National Theatre">National Theatre</option>
+                            <option value="Iganmu">Iganmu</option>
+                            <option value="Orile Iganmu">Orile Iganmu</option>
+                            <option value="Ebute Metta">Ebute Metta</option>
+                            <option value="Mile 2">Mile 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="fare-display" class="fare-display" style="display: none;">
+                    <div class="fare-amount">₦<span id="fare-amount">0</span></div>
+                    <div>Single Journey Fare</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passenger-email">Email Address</label>
+                    <input type="email" id="passenger-email" placeholder="Enter your email address" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="passenger-phone">Phone Number</label>
+                    <input type="tel" id="passenger-phone" placeholder="Enter your phone number" required>
+                </div>
+
+                <button class="btn" onclick="proceedToPayment()" id="proceed-btn" disabled>
+                    Proceed to Payment
+                </button>
+            </div>
+
+            <!-- Payment Section -->
+            <div class="section" id="payment-section">
+                <h2>Payment</h2>
+                
+                <div class="ticket-details">
+                    <div class="detail-row">
+                        <span>From:</span>
+                        <span id="payment-from">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>To:</span>
+                        <span id="payment-to">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Fare:</span>
+                        <span id="payment-fare">₦0</span>
+                    </div>
+                </div>
+
+                <h3>Select Payment Method</h3>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="selectPaymentMethod('card')">
+                        <div>💳</div>
+                        <div>Card Payment</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPaymentMethod('bank')">
+                        <div>🏦</div>
+                        <div>Bank Transfer</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPaymentMethod('ussd')">
+                        <div>📱</div>
+                        <div>USSD</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn back-btn" onclick="goBack('journey-section')">Back</button>
+                    <button class="btn" onclick="processPayment()" id="pay-btn" disabled>
+                        Pay Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="section" id="qr-section">
+                <h2>Payment Successful!</h2>
+                
+                <div class="success-icon">✓</div>
+                
+                <div class="qr-container">
+                    <h3>Your Digital Ticket</h3>
+                    <div class="qr-code" id="qr-code"></div>
+                    <p><strong>Ticket ID:</strong> <span id="ticket-id">-</span></p>
+                    <p>Show this QR code at the turnstile to gain access</p>
+                </div>
+
+                <div class="ticket-details">
+                    <div class="detail-row">
+                        <span>Passenger:</span>
+                        <span id="ticket-email">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Route:</span>
+                        <span id="ticket-route">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Fare Paid:</span>
+                        <span id="ticket-fare-paid">₦0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Valid Until:</span>
+                        <span id="ticket-validity">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Payment Method:</span>
+                        <span id="ticket-payment-method">-</span>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="newJourney()">Book Another Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTicket = {
+            from: '',
+            to: '',
+            fare: 0,
+            email: '',
+            phone: '',
+            paymentMethod: '',
+            ticketId: '',
+            timestamp: null
+        };
+
+        // Station fare matrix (simplified - in reality this would be more complex)
+        const fares = {
+            'Marina-Lagos Island': 200,
+            'Marina-Tafawa Balewa Square': 250,
+            'Marina-National Theatre': 300,
+            'Marina-Iganmu': 350,
+            'Marina-Orile Iganmu': 400,
+            'Marina-Ebute Metta': 450,
+            'Marina-Mile 2': 500,
+            'Lagos Island-Tafawa Balewa Square': 200,
+            'Lagos Island-National Theatre': 250,
+            'Lagos Island-Iganmu': 300,
+            'Lagos Island-Orile Iganmu': 350,
+            'Lagos Island-Ebute Metta': 400,
+            'Lagos Island-Mile 2': 450,
+        };
+
+        function calculateFare(from, to) {
+            if (from === to) return 0;
+            
+            const key1 = `${from}-${to}`;
+            const key2 = `${to}-${from}`;
+            
+            return fares[key1] || fares[key2] || 200; // Default fare
+        }
+
+        function updateFare() {
+            const from = document.getElementById('from-station').value;
+            const to = document.getElementById('to-station').value;
+            const email = document.getElementById('passenger-email').value;
+            const phone = document.getElementById('passenger-phone').value;
+            
+            if (from && to && from !== to) {
+                const fare = calculateFare(from, to);
+                document.getElementById('fare-amount').textContent = fare;
+                document.getElementById('fare-display').style.display = 'block';
+                currentTicket.fare = fare;
+            } else {
+                document.getElementById('fare-display').style.display = 'none';
+            }
+            
+            // Enable proceed button if all fields are filled
+            const proceedBtn = document.getElementById('proceed-btn');
+            if (from && to && from !== to && email && phone) {
+                proceedBtn.disabled = false;
+            } else {
+                proceedBtn.disabled = true;
+            }
+        }
+
+        function swapStations() {
+            const fromSelect = document.getElementById('from-station');
+            const toSelect = document.getElementById('to-station');
+            
+            const temp = fromSelect.value;
+            fromSelect.value = toSelect.value;
+            toSelect.value = temp;
+            
+            updateFare();
+        }
+
+        function proceedToPayment() {
+            currentTicket.from = document.getElementById('from-station').value;
+            currentTicket.to = document.getElementById('to-station').value;
+            currentTicket.email = document.getElementById('passenger-email').value;
+            currentTicket.phone = document.getElementById('passenger-phone').value;
+            
+            // Update payment section
+            document.getElementById('payment-from').textContent = currentTicket.from;
+            document.getElementById('payment-to').textContent = currentTicket.to;
+            document.getElementById('payment-fare').textContent = `₦${currentTicket.fare}`;
+            
+            showSection('payment-section');
+        }
+
+        function selectPaymentMethod(method) {
+            // Remove previous selection
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Add selection to clicked method
+            event.target.closest('.payment-method').classList.add('selected');
+            
+            currentTicket.paymentMethod = method;
+            document.getElementById('pay-btn').disabled = false;
+        }
+
+        function processPayment() {
+            // Simulate payment processing
+            const payBtn = document.getElementById('pay-btn');
+            payBtn.disabled = true;
+            payBtn.textContent = 'Processing...';
+            
+            setTimeout(() => {
+                // Generate ticket
+                generateTicket();
+                showSection('qr-section');
+                payBtn.disabled = false;
+                payBtn.textContent = 'Pay Now';
+            }, 2000);
+        }
+
+        function generateTicket() {
+            // Generate unique ticket ID
+            currentTicket.ticketId = 'LRMT' + Date.now().toString().slice(-8);
+            currentTicket.timestamp = new Date();
+            
+            // Create QR code data
+            const qrData = {
+                ticketId: currentTicket.ticketId,
+                from: currentTicket.from,
+                to: currentTicket.to,
+                fare: currentTicket.fare,
+                timestamp: currentTicket.timestamp.toISOString(),
+                email: currentTicket.email,
+                valid: true
+            };
+            
+            // Generate QR code
+            const qrContainer = document.getElementById('qr-code');
+            qrContainer.innerHTML = '';
+            
+            // Create canvas element
+            const canvas = document.createElement('canvas');
+            qrContainer.appendChild(canvas);
+            
+            // Generate QR code with error handling
+            try {
+                QRCode.toCanvas(canvas, JSON.stringify(qrData), {
+                    width: 200,
+                    height: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#1e3c72',
+                        light: '#FFFFFF'
+                    }
+                }, function(error) {
+                    if (error) {
+                        console.error('QR Code generation failed:', error);
+                        // Fallback: create a simple text QR code
+                        qrContainer.innerHTML = `
+                            <div style="border: 2px solid #1e3c72; padding: 20px; background: #f8f9fa;">
+                                <h4>Digital Ticket Code</h4>
+                                <p style="font-family: monospace; word-break: break-all; font-size: 12px;">
+                                    ${currentTicket.ticketId}
+                                </p>
+                                <p><small>Show this code at the turnstile</small></p>
+                            </div>
+                        `;
+                    }
+                });
+            } catch (e) {
+                console.error('QR Code library error:', e);
+                // Fallback display
+                qrContainer.innerHTML = `
+                    <div style="border: 2px solid #1e3c72; padding: 20px; background: #f8f9fa; text-align: center;">
+                        <h4>Digital Ticket</h4>
+                        <div style="font-family: monospace; font-size: 18px; font-weight: bold; margin: 15px 0; color: #1e3c72;">
+                            ${currentTicket.ticketId}
+                        </div>
+                        <p><small>Show this ticket ID at the turnstile</small></p>
+                    </div>
+                `;
+            }
+            
+            // Update ticket details
+            document.getElementById('ticket-id').textContent = currentTicket.ticketId;
+            document.getElementById('ticket-email').textContent = currentTicket.email;
+            document.getElementById('ticket-route').textContent = `${currentTicket.from} → ${currentTicket.to}`;
+            document.getElementById('ticket-fare-paid').textContent = `₦${currentTicket.fare}`;
+            
+            // Ticket valid for 2 hours
+            const validUntil = new Date(currentTicket.timestamp.getTime() + 2 * 60 * 60 * 1000);
+            document.getElementById('ticket-validity').textContent = validUntil.toLocaleString();
+            
+            const paymentMethodText = {
+                'card': 'Card Payment',
+                'bank': 'Bank Transfer',
+                'ussd': 'USSD'
+            };
+            document.getElementById('ticket-payment-method').textContent = paymentMethodText[currentTicket.paymentMethod];
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function goBack(sectionId) {
+            showSection(sectionId);
+        }
+
+        function newJourney() {
+            // Reset form
+            document.getElementById('from-station').value = '';
+            document.getElementById('to-station').value = '';
+            document.getElementById('passenger-email').value = '';
+            document.getElementById('passenger-phone').value = '';
+            document.getElementById('fare-display').style.display = 'none';
+            document.getElementById('proceed-btn').disabled = true;
+            
+            // Clear payment method selection
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Reset current ticket
+            currentTicket = {
+                from: '',
+                to: '',
+                fare: 0,
+                email: '',
+                phone: '',
+                paymentMethod: '',
+                ticketId: '',
+                timestamp: null
+            };
+            
+            showSection('journey-section');
+        }
+
+        // Event listeners
+        document.getElementById('from-station').addEventListener('change', updateFare);
+        document.getElementById('to-station').addEventListener('change', updateFare);
+        document.getElementById('passenger-email').addEventListener('input', updateFare);
+        document.getElementById('passenger-phone').addEventListener('input', updateFare);
+    </script>
+</body>
+</html>
