@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LRMT Blue Line - Cardless Payment</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -301,7 +301,7 @@
                         <label for="from-station">From</label>
                         <select id="from-station">
                             <option value="">Select departure station</option>
-                                                       <option value="Marina">Marina</option>
+                            <option value="Marina">Marina</option>
                             <option value="National Theatre">National Theatre</option>
                             <option value="Iganmu">Iganmu</option>
                             <option value="Alaba">Alaba</option>
@@ -315,7 +315,7 @@
                         <label for="to-station">To</label>
                         <select id="to-station">
                             <option value="">Select destination station</option>
-                            <option value="Marina">Marina</option>
+ <option value="Marina">Marina</option>
                             <option value="National Theatre">National Theatre</option>
                             <option value="Iganmu">Iganmu</option>
                             <option value="Alaba">Alaba</option>
@@ -442,10 +442,13 @@
 
         // Station fare matrix (simplified - in reality this would be more complex)
         const fares = {
-             'Marina-National Theatre': 300,
+         
+           
+            'Marina-National Theatre': 300,
             'Marina-Orile Iganmu': 400,
             'Marina-Alaba': 500,
             'Marina-Mile 2': 750,
+           
         };
 
         function calculateFare(from, to) {
@@ -540,7 +543,7 @@
             currentTicket.timestamp = new Date();
             
             // Create QR code data
-            const qrData = JSON.stringify({
+            const qrData = {
                 ticketId: currentTicket.ticketId,
                 from: currentTicket.from,
                 to: currentTicket.to,
@@ -548,40 +551,51 @@
                 timestamp: currentTicket.timestamp.toISOString(),
                 email: currentTicket.email,
                 valid: true
-            });
+            };
             
-            // Generate QR code
+            // Generate QR code 
             const qrContainer = document.getElementById('qr-code');
             qrContainer.innerHTML = '';
             
+            // Create canvas element
+            const canvas = document.createElement('canvas');
+            qrContainer.appendChild(canvas);
+            
+            // Generate QR code with error handling
             try {
-                // Create canvas element for QR code
-                const canvas = document.createElement('canvas');
-                canvas.width = 200;
-                canvas.height = 200;
-                qrContainer.appendChild(canvas);
-                
-                // Generate QR code using QRious library
-                const qr = new QRious({
-                    element: canvas,
-                    value: qrData,
-                    size: 200,
-                    background: '#ffffff',
-                    foreground: '#1e3c72',
-                    level: 'M'
+                QRCode.toCanvas(canvas, JSON.stringify(qrData), {
+                    width: 200,
+                    height: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#1e3c72',
+                        light: '#FFFFFF'
+                    }
+                }, function(error) {
+                    if (error) {
+                        console.error('QR Code generation failed:', error);
+                        // Fallback: create a simple text QR code
+                        qrContainer.innerHTML = `
+                            <div style="border: 2px solid #1e3c72; padding: 20px; background: #f8f9fa;">
+                                <h4>Digital Ticket Code</h4>
+                                <p style="font-family: monospace; word-break: break-all; font-size: 12px;">
+                                    ${currentTicket.ticketId}
+                                </p>
+                                <p><small>Show this code at the turnstile</small></p>
+                            </div>
+                        `;
+                    }
                 });
-                
-                console.log('QR Code generated successfully');
-            } catch (error) {
-                console.error('QR Code generation failed:', error);
+            } catch (e) {
+                console.error('QR Code library error:', e);
                 // Fallback display
                 qrContainer.innerHTML = `
-                    <div style="width: 200px; height: 200px; border: 3px solid #1e3c72; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f8f9fa;">
-                        <div style="font-size: 12px; margin-bottom: 10px;">DIGITAL TICKET</div>
-                        <div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #1e3c72; text-align: center; word-break: break-all; padding: 0 10px;">
+                    <div style="border: 2px solid #1e3c72; padding: 20px; background: #f8f9fa; text-align: center;">
+                        <h4>Digital Ticket</h4>
+                        <div style="font-family: monospace; font-size: 18px; font-weight: bold; margin: 15px 0; color: #1e3c72;">
                             ${currentTicket.ticketId}
                         </div>
-                        <div style="font-size: 10px; margin-top: 10px;">SCAN AT TURNSTILE</div>
+                        <p><small>Show this ticket ID at the turnstile</small></p>
                     </div>
                 `;
             }
