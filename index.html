@@ -302,13 +302,10 @@
                         <select id="from-station">
                             <option value="">Select departure station</option>
                             <option value="Marina">Marina</option>
-                            <option value="Lagos Island">Lagos Island</option>
-                            <option value="Tafawa Balewa Square">Tafawa Balewa Square</option>
                             <option value="National Theatre">National Theatre</option>
                             <option value="Iganmu">Iganmu</option>
-                            <option value="Orile Iganmu">Orile Iganmu</option>
-                            <option value="Ebute Metta">Ebute Metta</option>
-                            <option value="Mile 2">Mile 2</option>
+                            <option value="Alaba">Alaba</option>
+                           <option value="Mile 2">Mile 2</option>
                         </select>
                     </div>
                     
@@ -318,14 +315,11 @@
                         <label for="to-station">To</label>
                         <select id="to-station">
                             <option value="">Select destination station</option>
-                            <option value="Marina">Marina</option>
-                            <option value="Lagos Island">Lagos Island</option>
-                            <option value="Tafawa Balewa Square">Tafawa Balewa Square</option>
+ <option value="Marina">Marina</option>
                             <option value="National Theatre">National Theatre</option>
                             <option value="Iganmu">Iganmu</option>
-                            <option value="Orile Iganmu">Orile Iganmu</option>
-                            <option value="Ebute Metta">Ebute Metta</option>
-                            <option value="Mile 2">Mile 2</option>
+                            <option value="Alaba">Alaba</option>
+                           <option value="Mile 2">Mile 2</option>
                         </select>
                     </div>
                 </div>
@@ -448,19 +442,14 @@
 
         // Station fare matrix (simplified - in reality this would be more complex)
         const fares = {
-            'Marina-Lagos Island': 200,
-            'Marina-Tafawa Balewa Square': 250,
+         
+           
             'Marina-National Theatre': 300,
-            'Marina-Iganmu': 350,
+            
             'Marina-Orile Iganmu': 400,
-            'Marina-Ebute Metta': 450,
-            'Marina-Mile 2': 500,
-            'Lagos Island-Tafawa Balewa Square': 200,
-            'Lagos Island-National Theatre': 250,
-            'Lagos Island-Iganmu': 300,
-            'Lagos Island-Orile Iganmu': 350,
-            'Lagos Island-Ebute Metta': 400,
-            'Lagos Island-Mile 2': 450,
+            'Marina-Alaba': 500,
+            'Marina-Mile 2': 750,
+           
         };
 
         function calculateFare(from, to) {
